@@ -1,0 +1,39 @@
+Pulse 1.0
+
+Author: Kevin Boyd (aka Beryllium) <beryllium@beryllium.ca> http://beryllium.ca/
+
+Description:
+
+This script is intended to allow system administrators to determine that all of their systems are up-to-date, functional, and generally happy.
+
+It can also be used as a quick hit-point for Amazon Elastic Load Balancer health checks, since it returns HTTP-200.
+
+I have some grandiose ideas for how it can be used, but I'll get to that later :) For now, I am just putting it out there in PHP and looking for
+input on what other tidbits of data might be useful for sysadmins. And hey, ports to other languages are welcome, too, as long as the output is
+cross-compatible :)
+
+Requirements:
+    A non-Windows operating system (for some of the system calls, like loadavg - I'd like it to be cross-platform, though)
+	PHP
+	MCrypt
+	?? I dunno. Maybe some PHP5.3 stuff, but there shouldn't be too much of that.
+
+Configuration:
+
+Open the script and set the $keymaster and $gatekeeper values.
+
+	$keymaster This is the secret key used to encrypt the content. Pulse will need to know it, and your analysis platform will need to know it,
+	           but it should never be passed in an HTTP POST or HTTP GET.
+    
+	$gatekeeper This is the Gatekeeper; attaching this to the URL will cause the encrypted string to be built and spat out.
+
+Usage:
+	$data = file_get_contents( 'http://slimer.example.com/pulse.php?gatekeeper=ZUUL' );
+
+	$array = unserialize( mcrypt_decrypt( 
+				MCRYPT_RIJNDAEL_256, 
+				'my secret keymaster value which is of course STAY PUFT MARSHMALLOW MAN',
+				$data,
+				MCRYPT_MODE_ECB );
+
+	print_r( $array );
