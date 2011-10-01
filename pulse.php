@@ -52,7 +52,13 @@ $status_array[ 'server_status' ] = 'up';
 $status_array[ 'load_avg' ] = sys_getloadavg(); //this won't work on Windows platforms
 $status_array[ 'date' ] = date( 'Y-m-d H:i:s' );
 $status_array[ 'phpversion' ] = phpversion();
-$status_array[ 'gc' ] = gc_enabled();
+
+//Certain older PHP versions don't have this
+if ( function_exists( 'gc_enabled' ) )
+{
+	$status_array[ 'gc' ] = gc_enabled();
+}
+
 $status_array[ 'resource_usage' ] = getrusage(); //again, won't work on Windows
 $status_array[ 'uname' ] = php_uname();
 $status_array[ 'extensions' ] = get_loaded_extensions();
