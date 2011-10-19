@@ -33,7 +33,7 @@ if ( empty( $keymaster ) || empty( $gatekeeper ) )
 	exit;
 }
 
-if ( $gatekeeper != $_REQUEST[ 'gatekeeper' ] )
+if ( $gatekeeper !== $_REQUEST[ 'gatekeeper' ] )
 {
 	echo "Server is up.\n\nAre you the Gatekeeper?";
 	exit;
@@ -45,13 +45,17 @@ if ( !extension_loaded( 'mcrypt' ) )
 	exit;
 }
 
-$status_array = @array();
+$windows = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') ? true : false;
 
+$status_array = array();
 $status_array[ 'pulse_version' ] = '1.0';
 $status_array[ 'server_status' ] = 'up';
-$status_array[ 'load_avg' ] = sys_getloadavg(); //this won't work on Windows platforms
 $status_array[ 'date' ] = date( 'Y-m-d H:i:s' );
 $status_array[ 'phpversion' ] = phpversion();
+$status_array[ 'uname' ] = php_uname();
+$status_array[ 'extensions' ] = get_loaded_extensions();
+$status_array[ 'diskfree' ] = disk_free_space( '.' );
+$status_array[ 'disktotal' ] = disk_total_space( '.' );
 
 //Certain older PHP versions don't have this
 if ( function_exists( 'gc_enabled' ) )
@@ -59,11 +63,12 @@ if ( function_exists( 'gc_enabled' ) )
 	$status_array[ 'gc' ] = gc_enabled();
 }
 
-$status_array[ 'resource_usage' ] = getrusage(); //again, won't work on Windows
-$status_array[ 'uname' ] = php_uname();
-$status_array[ 'extensions' ] = get_loaded_extensions();
-$status_array[ 'diskfree' ] = disk_free_space( '.' );
-$status_array[ 'disktotal' ] = disk_total_space( '.' );
+//The Windows PHP api does not have these methods
+if (!$windows)
+{
+	$status_array[ 'load_avg' ] = sys_getloadavg();
+	$status_array[ 'resource_usage' ] = getrusage();
+}
 
 $packet = mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $keymaster, serialize( $status_array ), MCRYPT_MODE_ECB );
 $packet = base64_encode( $packet );
